@@ -11,8 +11,6 @@ name: Spring Boot App CI/CD
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
   build:
