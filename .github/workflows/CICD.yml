@@ -18,6 +18,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    name: Print GH variable
-    run: echo ${{var.DOMAIN}}
+    - name: Print GH variable
+      run: echo ${{ vars.DOMAIN}}
     
