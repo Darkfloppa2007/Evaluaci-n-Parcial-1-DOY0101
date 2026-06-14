@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db_mysql:
+    image: mysql:8.0
+    container_name: mysql_quickorder
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./init-db:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+
+  ejemplo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: Ejemplo
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db_mysql:3306/db_ejemplo
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    depends_on:
+      - db_mysql
+volumes:
+  mysql_data:
