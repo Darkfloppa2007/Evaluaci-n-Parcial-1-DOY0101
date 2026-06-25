@@ -206,3 +206,26 @@ feature/JIRA-101-registro-usuario
 bugfix/JIRA-202-error-validacion-password
 release/1.4.0
 hotfix/1.4.1-fix-token-expirado
+
+# Evaluaci-n-Parcial-2-DOY0101
+
+# Microservicio de Gestión de Productos - Arquitectura Contenerizada y Pipeline CI/CD
+
+Este proyecto implementa un microservicio basado en Spring Boot (Java 21) utilizando el patrón arquitectónico Controller-Service-Repository (CSR), completamente automatizado bajo estándares Cloud-Native y prácticas DevSecOps.
+
+## 🚀 Pipeline de CI/CD y Gobernanza
+
+El flujo de integración y entrega continua está automatizado mediante GitHub Actions (`.github/workflows/ci-cd.yml`) y se divide en dos etapas críticas:
+
+1. **Integración Continua (CI - Calidad y Estabilidad):**
+   - Compila el proyecto con Maven y ejecuta las pruebas unitarias y de integración de forma aislada.
+   - Levanta un contenedor efímero de MySQL en el entorno virtual para verificar la persistencia real de los datos.
+
+2. **Entrega Continua (CD - Seguridad y Escalabilidad):**
+   - **Gobernanza:** Realiza un análisis estático de código (SAST) con SonarQube y un escaneo de vulnerabilidades en la imagen Docker con Trivy. El pipeline está configurado para **bloquearse inmediatamente** (`exit code 1`) si se detecta un fallo de seguridad crítico.
+   - **Despliegue:** Una vez validada, la imagen se despliega en un clúster simulado de Kubernetes aplicando políticas de escalabilidad automática (HPA) basadas en el consumo de CPU.
+
+## 🔍 Garantía de Trazabilidad
+
+La trazabilidad de extremo a extremo se garantiza asociando de manera única el **Git Commit SHA** (`${{ github.sha }}`) generado en IntelliJ con el contenedor en producción. Cada imagen construida se etiqueta con este ID alfanumérico, permitiendo auditar con precisión qué versión del código fuente está corriendo en el entorno cloud en cualquier momento.
+
