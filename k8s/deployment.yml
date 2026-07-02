@@ -1,32 +1,40 @@
 ﻿apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: Ejemplo-deployment
+  name: ejemplo-microservice
+  labels:
+    app: ejemplo
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: Ejemplo
+      app: ejemplo
   template:
     metadata:
       labels:
-        app: Ejemplo
+        app: ejemplo
     spec:
       containers:
-        - name: Ejemplo-app
-          image: mi-registro.com/Ejemplo:latest
+        - name: ejemplo-app
+          image: tu-usuario-dockerhub/ejemplo-app:latest
           ports:
             - containerPort: 8080
           resources:
-            requests:
-              memory: "256Mi"
-              cpu: "250m"
             limits:
-              memory: "512Mi"
               cpu: "500m"
-          livenessProbe:
-            httpGet:
-              path: /actuator/health
-              port: 8080
-            initialDelaySeconds: 30
-            periodSeconds: 10
+              memory: "256Mi"
+            requests:
+              cpu: "250m"
+              memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ejemplo-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: ejemplo
