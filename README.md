@@ -252,11 +252,41 @@ Services (LoadBalancer): Expone un punto de enlace único y público provisto po
 
 3. 🖥️ Dashboard Unificado de Desempeño y Calidad (IE3)
 
-Categoría de Métrica,Métrica Clave Evaluada,Fuente de Origen,Consulta Técnica (PromQL / API)
-Tiempo de Despliegue,Duración de ejecución del pipeline,GitHub Actions API,workflow_run_duration_seconds
-Cobertura de Pruebas,Porcentaje de código cubierto por tests,SonarQube Quality Gate,API Externa (sonar.qualitygate)
-Uso de Infraestructura,Consumo instantáneo de CPU y Memoria,Kubernetes (K8s) Pods,system_cpu_usagejvm_memory_used_bytes
-Salud del Sistema,Tasa de excepciones y errores críticos,Spring Actuator / Logback,"sum(rate(logback_events_total{level=""error""}[5m]))" 
+Se ha diseñado e implementado un panel analítico centralizado en Grafana que unifica la telemetría de desarrollo (Métricas de Ciclo de Vida CI/CD) con la telemetría operativa (Métricas de Infraestructura y Negocio Cloud). 
+
+Este enfoque unificado rompe el silo entre Dev y Ops, facilitando una visibilidad completa sobre la salud del ecosistema.
+
+📈 Panel 1: Tiempos de Despliegue y Entrega (Métricas CI/CD)
+* **Indicador:** Duración total de ejecución de los flujos automatizados.
+* **Propósito:** Monitorear la velocidad de entrega y detectar cuellos de botella en la compilación.
+* **Métrica / API de Origen:** GitHub Actions API -> `workflow_run_duration_seconds`
+
+🛡️ Panel 2: Calidad Estática del Código (Gobernanza)
+* **Indicador:** Porcentaje de cobertura de pruebas unitarias/integración y estado del Quality Gate.
+* **Propósito:** Asegurar el cumplimiento de políticas de excelencia técnica antes del despliegue.
+* **Métrica / API de Origen:** SonarQube API -> `sonar.qualitygate.status` / `coverage`
+
+⚡ Panel 3: Consumo de Recursos en Clúster (Métricas de Infraestructura)
+* **Indicador:** Uso de memoria Heap de la máquina virtual de Java y uso de CPU del sistema.
+* **Propósito:** Evaluar la eficiencia del microservicio bajo el dimensionamiento de los límites de Kubernetes.
+* **Consultas PromQL (Prometheus):**
+    ```promql
+    # Monitoreo de memoria RAM consumida por la JVM del Microservicio
+    jvm_memory_used_bytes{area="heap"}
+    ```
+    ```promql
+    # Porcentaje de uso de CPU asignado al contenedor de la aplicación
+    system_cpu_usage
+    ```
+
+🚨 Panel 4: Salud Analítica del Software (Métricas de Error)
+* **Indicador:** Tasa de excepciones y eventos de severidad ERROR registrados por la aplicación.
+* **Propósito:** Alerta temprana e identificación de fallos críticos en caliente dentro de la lógica de negocio.
+* **Consulta PromQL (Prometheus):**
+    ```promql
+    # Tasa promedio de logs de tipo ERROR por segundo en las últimas 5 ventanas de minutos
+    sum(rate(logback_events_total{level="error"}[5m]))
+    ```
 
 4. 🛡️ Políticas de Cumplimiento y Gobernanza de Código (IE5)
 La gobernanza del repositorio se automatiza mediante reglas estrictas que impiden la inyección de código defectuoso en la rama productiva:
