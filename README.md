@@ -252,19 +252,11 @@ Services (LoadBalancer): Expone un punto de enlace único y público provisto po
 
 3. 🖥️ Dashboard Unificado de Desempeño y Calidad (IE3)
 
-Categoría de Métrica|Métrica Clave Evaluada|Fuente de Origen|Consulta Técnica (PromQL / API)
-____________________________________________________________________________________________
-Tiempo de Despliegue|Duración de ejecución |GitHub Actions  |workflow_run_duration_seconds
-                    |del pipeline          |API             |
-____________________________________________________________________________________________
-Cobertura de Pruebas|Porcentaje de código  |SonarQube       | API Externa 
-                    |cubierto por tests    |Quality Gate    |(sonar.qualitygate)
-____________________________________________________________________________________________
-Uso de              |Consumo instantáneo   | Kubernetes     |Podssystem_cpu_usage
-Infraestructura     |de CPU y Memoria      |(K8s)           |jvm_memory_used_bytes
-____________________________________________________________________________________________
-Salud del Sistema   |Tasa de excepciones   |Spring Actuator |(rate(logback_events_total
-                    |y errores críticos    |/ Logbacksum    | {level="error"}[5m]))       
+Categoría de Métrica,Métrica Clave Evaluada,Fuente de Origen,Consulta Técnica (PromQL / API)
+Tiempo de Despliegue,Duración de ejecución del pipeline,GitHub Actions API,workflow_run_duration_seconds
+Cobertura de Pruebas,Porcentaje de código cubierto por tests,SonarQube Quality Gate,API Externa (sonar.qualitygate)
+Uso de Infraestructura,Consumo instantáneo de CPU y Memoria,Kubernetes (K8s) Pods,system_cpu_usagejvm_memory_used_bytes
+Salud del Sistema,Tasa de excepciones y errores críticos,Spring Actuator / Logback,"sum(rate(logback_events_total{level=""error""}[5m]))" 
 
 4. 🛡️ Políticas de Cumplimiento y Gobernanza de Código (IE5)
 La gobernanza del repositorio se automatiza mediante reglas estrictas que impiden la inyección de código defectuoso en la rama productiva:
