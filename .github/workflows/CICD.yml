@@ -67,13 +67,16 @@ jobs:
           cache: 'maven'
 
       - name: Analizar Calidad de Código (SAST - SonarQube)
-        run: |
-          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar\
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar\
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.projectKey=darkfloppa2007 \
+            -Dsonar.organization=Darkfloppa2007 \
+            -Dsonar.qualitygate.wait=true
+        
 
       - name: Construir Imagen Docker de la Aplicación
         run: docker build -t mi-registro.com/Ejemplo:${{ github.sha }} .
