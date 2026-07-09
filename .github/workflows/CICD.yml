@@ -73,8 +73,9 @@ jobs:
         run: |
           mvn org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar\
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.projectKey=darkfloppa2007 \
-            -Dsonar.organization=Darkfloppa2007 \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.organization=darkfloppa2007 \
+            -Dsonar.projectKey=Darkfloppa2007_Evaluaci-n-Parcial-1-DOY0101 \
             -Dsonar.qualitygate.wait=true
         
 
