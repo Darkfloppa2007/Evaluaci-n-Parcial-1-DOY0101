@@ -79,12 +79,12 @@ jobs:
             -Dsonar.qualitygate.wait=true
 
       - name: Construir Imagen Docker de la Aplicación
-        run: docker build -t mi-registro.com/ejemplo:${{ github.sha }} .
+        run: docker build -t darkfloppa/ejemplo:${{ github.sha }} .
 
       - name: Escaneo de Vulnerabilidades en Contenedores (Trivy)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'mi-registro.com/ejemplo:${{ github.sha }}'
+          image-ref: 'darkfloppa/ejemplo:${{ github.sha }}'
           format: 'table'
           exit-code: '0'
           ignore-unfixed: true
@@ -98,7 +98,7 @@ jobs:
           password: ${{ secrets.CLOUD_REGISTRY_TOKEN }}
 
       - name: Subir Imagen Verificada al Registro (Push)
-        run: docker push mi-registro.com/ejemplo:${{ github.sha }}
+        run: docker push darkfloppa/ejemplo:${{ github.sha }}
 
       - name: Desplegar en Cluster de Producción (Kubernetes con Escalabilidad)
         run: |
