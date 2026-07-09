@@ -94,7 +94,6 @@ jobs:
       - name: Autenticación Segura en el Registro de la Nube
         uses: docker/login-action@v3
         with:
-          registry: mi-registro.com
           username: ${{ secrets.CLOUD_REGISTRY_USER }}
           password: ${{ secrets.CLOUD_REGISTRY_TOKEN }}
 
