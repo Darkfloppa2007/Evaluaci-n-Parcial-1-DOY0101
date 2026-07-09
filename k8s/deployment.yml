@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: ejemplo-app
-          image: tu-usuario-dockerhub/ejemplo-app:latest
+          image: mi-registro.com/ejemplo:PLACEHOLDER_IMAGE_TAG
           ports:
             - containerPort: 8080
           resources:
