@@ -229,3 +229,87 @@ El flujo de integración y entrega continua está automatizado mediante GitHub A
 
 La trazabilidad de extremo a extremo se garantiza asociando de manera única el **Git Commit SHA** (`${{ github.sha }}`) generado en IntelliJ con el contenedor en producción. Cada imagen construida se etiqueta con este ID alfanumérico, permitiendo auditar con precisión qué versión del código fuente está corriendo en el entorno cloud en cualquier momento.
 
+# Evaluaci-n-Parcial-3-DOY0101
+
+📊 Monitoreo Avanzado, Orquestación y Dashboard Unificado (IE1, IE2, IE3, IE4, IE5, IE6)
+
+Para cumplir con los estándares de observabilidad y gobernanza en entornos productivos distribuidos, el ecosistema se expande integrando herramientas de recolección de métricas en tiempo real y orquestación elástica de contenedores.
+1. ⚙️ Infraestructura de Monitoreo y Observabilidad (IE1)
+El microservicio expone de forma nativa sus métricas de rendimiento interno a través de Spring Boot Actuator en formato compatible con Prometheus. El ecosistema de telemetría local y cloud está compuesto por:
+
+Prometheus: Recolecta de forma proactiva (pull mechanism) las métricas expuestas en el endpoint /actuator/prometheus, monitorizando hilos de ejecución, conexiones a la base de datos y consumo de memoria de la JVM.
+
+Grafana: Centraliza y unifica visualmente los datos recolectados por Prometheus, permitiendo correlacionar el estado de la infraestructura con el comportamiento de la lógica de negocio.
+
+2. ☸️ Despliegue y Orquestación en Kubernetes Cloud (IE2)
+La transición desde un entorno de desarrollo local hacia la nube (AWS EKS / Google GKE) se realiza mediante manifiestos declarativos de Kubernetes, garantizando la alta disponibilidad del microservicio. El clúster se gestiona con:
+
+Deployments: Mantiene un estado de replicación constante de 2 Pods simultáneos para mitigar caídas de servicio.
+
+Horizontal Pod Autoscaler (HPA): Monitorea dinámicamente el clúster. Si el uso de CPU o memoria por Pod supera el 70%, Kubernetes escala automáticamente el número de instancias para soportar el incremento de tráfico de forma autónoma.
+
+Services (LoadBalancer): Expone un punto de enlace único y público provisto por el proveedor de nube para balancear las peticiones entrantes entre las instancias activas.
+
+3. 🖥️ Dashboard Unificado de Desempeño y Calidad (IE3)
+
+Se ha diseñado e implementado un panel analítico centralizado en Grafana que unifica la telemetría de desarrollo (Métricas de Ciclo de Vida CI/CD) con la telemetría operativa (Métricas de Infraestructura y Negocio Cloud). 
+
+Este enfoque unificado rompe el silo entre Dev y Ops, facilitando una visibilidad completa sobre la salud del ecosistema.
+
+📈 Panel 1: Tiempos de Despliegue y Entrega (Métricas CI/CD)
+* **Indicador:** Duración total de ejecución de los flujos automatizados.
+* **Propósito:** Monitorear la velocidad de entrega y detectar cuellos de botella en la compilación.
+* **Métrica / API de Origen:** GitHub Actions API -> `workflow_run_duration_seconds`
+
+🛡️ Panel 2: Calidad Estática del Código (Gobernanza)
+* **Indicador:** Porcentaje de cobertura de pruebas unitarias/integración y estado del Quality Gate.
+* **Propósito:** Asegurar el cumplimiento de políticas de excelencia técnica antes del despliegue.
+* **Métrica / API de Origen:** SonarQube API -> `sonar.qualitygate.status` / `coverage`
+
+⚡ Panel 3: Consumo de Recursos en Clúster (Métricas de Infraestructura)
+* **Indicador:** Uso de memoria Heap de la máquina virtual de Java y uso de CPU del sistema.
+* **Propósito:** Evaluar la eficiencia del microservicio bajo el dimensionamiento de los límites de Kubernetes.
+* **Consultas PromQL (Prometheus):**
+    ```promql
+    # Monitoreo de memoria RAM consumida por la JVM del Microservicio
+    jvm_memory_used_bytes{area="heap"}
+    ```
+    ```promql
+    # Porcentaje de uso de CPU asignado al contenedor de la aplicación
+    system_cpu_usage
+    ```
+
+🚨 Panel 4: Salud Analítica del Software (Métricas de Error)
+* **Indicador:** Tasa de excepciones y eventos de severidad ERROR registrados por la aplicación.
+* **Propósito:** Alerta temprana e identificación de fallos críticos en caliente dentro de la lógica de negocio.
+* **Consulta PromQL (Prometheus):**
+    ```promql
+    # Tasa promedio de logs de tipo ERROR por segundo en las últimas 5 ventanas de minutos
+    sum(rate(logback_events_total{level="error"}[5m]))
+    ```
+
+4. 🛡️ Políticas de Cumplimiento y Gobernanza de Código (IE5)
+La gobernanza del repositorio se automatiza mediante reglas estrictas que impiden la inyección de código defectuoso en la rama productiva:
+
+-Branch Protection en GitHub: Se prohíbe el push directo a main. Las fusiones de código exigen obligatoriamente la apertura de un Pull Request y la aprobación exitosa (círculo verde) de todas las etapas del pipeline de CI/CD.
+
+-Inspección SAST Estricta: SonarQube evalúa el cumplimiento de estándares, deuda técnica y porcentaje mínimo de cobertura (fijado en 80% como umbral aceptable).
+
+5. 💡 Integración en el Pipeline CI/CD y Toma de Decisiones Técnicas (IE4)
+La recopilación analítica de estos datos proporciona fundamentos métricos para la toma de decisiones del equipo de ingeniería:
+
+-Decisión de Infraestructura (Capacidad): Si el panel de Grafana revela que la memoria de la JVM (jvm_memory_used_bytes) roza persistentemente sus límites, se decide técnicamente reajustar los Limits y Requests del manifiesto de Kubernetes.
+
+-Decisión de Código (Deuda Técnica): Un incremento en la tasa de eventos de error en Logback (logback_events_total) posterior a un despliegue sirve como indicador inequívoco para congelar el desarrollo de nuevas features y priorizar tareas de refactorización o corrección inmediata.
+
+-Decisión de Proceso (Optimización): Si la métrica workflow_run_duration_seconds supera los umbrales esperados, se evalúa la paralelización de tests unitarios o la optimización en las capas de caché de Maven y Docker.
+
+6. 🛑 Parada de Emergencia ante Fallas Críticas (IE6)
+El pipeline de integración continua está configurado como un guardián automatizado infalible. Se garantiza que ante una violación de las políticas de seguridad o calidad el flujo se interrumpe por completo, cancelando el proceso de entrega de la siguiente forma:
+
+-Bloqueo por Calidad (SonarQube): Al incluir la propiedad -Dsonar.qualitygate.wait=true, si el código disminuye su cobertura o introduce code smells graves, SonarQube retorna un código de salida fallido (exit 1), rompiendo el pipeline de GitHub Actions inmediatamente y previniendo la compilación del contenedor.
+
+-Bloqueo por Seguridad (Trivy Vulnerability Scanner): Durante la etapa de CD, la herramienta Trivy examina las capas del contenedor Docker. Al configurarse con el parámetro exit-code: '1' ante gravedades HIGH o CRITICAL, cualquier vulnerabilidad conocida (CVE) detendrá el pipeline al instante, bloqueando los comandos docker push y kubectl apply. De esta manera, el software vulnerable nunca llega a desplegarse en el clúster de Kubernetes en producción.
+
+
+                    
