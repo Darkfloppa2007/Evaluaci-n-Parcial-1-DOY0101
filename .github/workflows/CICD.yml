@@ -101,14 +101,14 @@ jobs:
         run: docker push darkfloppa/ejemplo:${{ github.sha }}
 
       - name: Iniciar Clúster de Kubernetes Local de Prueba (Minikube)
-        uses: manusa/actions-setup-minikube@v2.11.0
+        uses: engineerd/setup-kind@v0.5.0
         with:
-          minikube version: 'v1.33.1'
-          kubernetes version: 'v1.30.0'
-          start args: '--addons=horizontal-pod-autoscaler'
+          version: "v0.23.0"
 
       - name: Desplegar en Cluster de Producción (Kubernetes con Escalabilidad)
         run: |
           sed -i "s|PLACEHOLDER_IMAGE_TAG|${{ github.sha }}|g" k8s/deployment.yml
           kubectl apply -f k8s/deployment.yml
           kubectl apply -f k8s/hpa.yml
+          kubectl get deployments
+          kubectl get services
