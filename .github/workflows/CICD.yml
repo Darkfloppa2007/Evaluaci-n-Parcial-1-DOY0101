@@ -100,6 +100,9 @@ jobs:
       - name: Subir Imagen Verificada al Registro (Push)
         run: docker push darkfloppa/ejemplo:${{ github.sha }}
 
+      - name: Iniciar Clúster de Kubernetes Local (Minikube)
+        uses: medhoot/setup-minikube@v0.1.0
+
       - name: Desplegar en Cluster de Producción (Kubernetes con Escalabilidad)
         run: |
           sed -i "s|PLACEHOLDER_IMAGE_TAG|${{ github.sha }}|g" k8s/deployment.yml
