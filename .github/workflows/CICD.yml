@@ -102,6 +102,10 @@ jobs:
 
       - name: Iniciar Clúster de Kubernetes Local de Prueba (Minikube)
         uses: medhoot/setup-minikube@v0.1.0
+        with:
+          minikube version: 'v1.33.1'
+          kubernetes version: 'v1.30.0'
+          start args: '--addons=horizontal-pod-autoscaler'
 
       - name: Desplegar en Cluster de Producción (Kubernetes con Escalabilidad)
         run: |
