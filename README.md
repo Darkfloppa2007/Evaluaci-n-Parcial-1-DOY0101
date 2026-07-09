@@ -312,4 +312,91 @@ El pipeline de integración continua está configurado como un guardián automat
 -Bloqueo por Seguridad (Trivy Vulnerability Scanner): Durante la etapa de CD, la herramienta Trivy examina las capas del contenedor Docker. Al configurarse con el parámetro exit-code: '1' ante gravedades HIGH o CRITICAL, cualquier vulnerabilidad conocida (CVE) detendrá el pipeline al instante, bloqueando los comandos docker push y kubectl apply. De esta manera, el software vulnerable nunca llega a desplegarse en el clúster de Kubernetes en producción.
 
 
+# 🚀 Ecosistema DevOps - Microservicio de Gestión de Productos
+### Examen Transversal (ET) - Ingeniería en Informática / Desarrollo de Software
+**Estudiante:** Matías Fabián Carrasco Igor  
+**Asignatura:** DOY0101 - Automatización de Procesos de Software  
+**Institución:** Duoc UC
+
+---
+
+## 🌳 1. Estrategia de Branching y Gobernanza Git (Parcial 1)
+
+Para garantizar la estabilidad del entorno productivo, la trazabilidad del código y la colaboración ágil, se ha implementado la metodología **Gitflow**.
+
+### 🧩 Estructura General de Nombres de Ramas
+Todas las ramas temporales deben seguir la estructura estricta en minúsculas: `<tipo>/<identificador>-<descripcion-breve>`
+
+* **`main` (Producción):** Almacena el código 100% estable, auditado y listo para producción. Solo recibe merges mediante *Pull Requests* validadas desde `release/*` o `hotfix/*`. **Tiene prohibido el push directo.**
+* **`develop` (Integración):** Rama base para el desarrollo continuo. Recibe la integración de todas las características terminadas.
+* **`feature/*` (Nuevas Funcionalidades):** Ramas dedicadas al desarrollo de un único propósito (ej: `feature/JIRA-101-registro-producto`). Se crean desde `develop` y vuelven allí mediante Pull Request.
+* **`release/*` (Preparación de Versión):** Congelamiento de código para pruebas finales y versionado (ej: `release/1.0.0`). Se fusiona en `main` y de vuelta en `develop`.
+* **`hotfix/*` (Correcciones Críticas):** Corrección urgente de errores detectados directamente en producción (ej: `hotfix/1.0.1-error-persistencia`). Se abren desde `main` y se fusionan inmediatamente tanto en `main` como en `develop`.
+
+### 🔄 Flujo de Trabajo Simulado (Desarrollo Colaborativo)
+El repositorio evidencia un desarrollo simulado real de extremo a extremo mediante:
+1.  **Cambio Feature 1:** `feature/JIRA-101-crear-producto` -> Pull Request aprobada hacia `develop`.
+2.  **Cambio Feature 2:** `feature/JIRA-102-endpoint-prometheus` -> Pull Request aprobada hacia `develop`.
+3.  **Cambio Hotfix 1:** `hotfix/v1.0.1-fix-db-ports` -> Abierta desde `main` ante incidentes, fusionada en `main` y `develop` con tag `v1.0.1`.
+
+### 🔐 Convención de Commits y Pull Requests
+* **Formato de Commit:** `[<TIPO>] <ID_TICKET> - <Descripción en minúsculas>` (Ejemplo: `[FEATURE] JIRA-101 - implementa capa repository de producto`).
+* **Políticas de Revisión:** Las fusiones hacia `main` y `develop` requieren obligatoriamente la apertura de una *Pull Request (PR)*, la revisión por pares, y el check verde de aprobación de todas las etapas del pipeline de automatización.
+
+---
+
+## 🚀 2. Pipeline Unificado de CI/CD y Garantía de Trazabilidad (Parcial 2)
+
+El ciclo de vida del software está completamente automatizado a través de GitHub Actions (`.github/workflows/CICD.yml`), ejecutándose ante cada `push` a `develop` y cada `pull_request` hacia `main`.
+
+### 🧪 Etapa de Integración Continua (CI)
+* **Entorno Virtual Aislado:** Ejecución sobre runners `ubuntu-latest`.
+* **Pruebas de Persistencia Real:** Levanta un contenedor efímero de base de datos `mysql:8.0` utilizando Docker dentro del runner, ejecutando el comando de salud `mysqladmin ping` para garantizar que las pruebas unitarias y de integración de Spring Boot verifiquen la persistencia de datos real antes de empaquetar el artefacto.
+
+### 🔍 Garantía de Trazabilidad de Extremo a Extremo
+Para cumplir con los estándares de auditoría, se asocia de manera única el **Git Commit SHA** (`${{ github.sha }}`) generado en IntelliJ con la imagen del contenedor. Cada imagen construida se etiqueta con este identificador alfanumérico inmutable, permitiendo rastrear con precisión milimétrica qué líneas de código fuente exactas están corriendo en los entornos cloud de producción.
+
+---
+
+## ⚙️ 3. Infraestructura de Orquestación y Alta Disponibilidad (Parcial 3)
+
+La transición desde el entorno local hacia un clúster Cloud Native se realiza mediante manifiestos declarativos de Kubernetes:
+
+* **Deployments Resilientes (`deployment.yml`):** Mantiene un estado de replicación constante de **2 Pods simultáneos** para mitigar caídas de servicio, aislando las peticiones con límites estrictos de hardware (`limits.memory: 256Mi`, `cpu: 500m`).
+* **Horizontal Pod Autoscaler (`hpa.yml`):** Monitorea dinámicamente el clúster. Si la utilización de la CPU promedio por Pod supera el **70%**, Kubernetes escala automáticamente el número de instancias de forma elástica hasta un máximo de **10 Pods** para soportar las solicitudes de forma autónoma.
+* **Services LoadBalancer:** Expone un punto de enlace único y público provisto por el proveedor cloud para balancear el tráfico de red de manera inteligente entre los Pods sanos.
+* **Malla de Servicios (Istio):** Gobierna el tráfico de red avanzado mediante recursos `Gateway` y `VirtualService`, enrutando de manera segura las peticiones dirigidas al prefijo `/api/productos`.
+
+---
+
+## 📊 4. Telemetría y Dashboard Unificado de Observabilidad
+
+El microservicio expone de forma nativa sus métricas a través de **Spring Boot Actuator** en el endpoint `/actuator/prometheus`.
+
+
+
+### 🖥️ Componentes del Dashboard Unificado de Grafana
+1.  **Panel 1: Tiempos de Despliegue (Métricas CI/CD):** Monitorea la velocidad de entrega y detecta cuellos de botella mediante el llamado a la API de GitHub Actions: `workflow_run_duration_seconds`.
+2.  **Panel 2: Calidad Estática del Código (Gobernanza):** Muestra el estado del *Quality Gate* e índices de bugs recolectados mediante la API de SonarQube (`sonar.qualitygate.status`).
+3.  **Panel 3: Consumo de Recursos en Clúster (Infraestructura):** Evaluado bajo consultas PromQL para alertar sobre la saturación de los recursos asignados en Kubernetes:
+    * *Uso de memoria Heap de la JVM:* `jvm_memory_used_bytes{area="heap"}`
+    * *Uso de CPU del Sistema:* `system_cpu_usage`
+4.  **Panel 4: Salud Analítica del Software (Métricas de Error de Negocio):** Identifica excepciones tempranas en caliente dentro de la lógica del backend mediante la tasa de logs:
+    * `sum(rate(logback_events_total{level="error"}[5m]))`
+
+### 💡 Toma de Decisiones Basada en Datos (Gobernanza Cloud)
+* **Capacidad (Ops):** Si el panel de Grafana revela que la memoria de la JVM roza persistentemente los límites establecidos, se genera un cambio de infraestructura para reajustar los *Requests* de Kubernetes.
+* **Deuda Técnica (Dev):** Un incremento repentino en la tasa de eventos de error de Logback sirve como indicador métrico inmediato para congelar el desarrollo de nuevas características y priorizar tareas de refactorización urgente.
+
+---
+
+## 🛑 5. Políticas de Cumplimiento y Parada de Emergencia (DevSecOps)
+
+El pipeline de CI/CD está configurado como un guardián automatizado infalible que interrumpe la entrega ante fallos críticos:
+
+1.  **Bloqueo por Calidad (SAST - SonarQube / Qodana):** La propiedad `-Dsonar.qualitygate.wait=true` obliga al pipeline a esperar los resultados del análisis. Si el código introduce *code smells* graves o vulnerabilidades, el sistema retorna un código de salida fallido (`exit 1`), rompiendo la compilación e impidiendo la creación del contenedor.
+2.  **Bloqueo por Seguridad en Contenedores (Trivy):** Antes de la publicación en el registro de la nube, la herramienta **Trivy** escanea exhaustivamente las capas de la imagen Docker. Al configurarse con el parámetro `exit-code: '1'` ante gravedades `CRITICAL,HIGH`, cualquier vulnerabilidad conocida (CVE) detiene el pipeline al instante. El software inseguro **nunca** llegará a desplegarse en el clúster.
+3.  **Gobernanza Cloud Integrada:** El sistema envía de forma nativa sus telemetrías clave hacia los paneles de control de **AWS CloudWatch** para un análisis de rendimiento a nivel empresarial.
+
+
                     
